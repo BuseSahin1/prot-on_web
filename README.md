@@ -26,7 +26,7 @@ The PROT-ON tool is designed with a modular architecture that includes the follo
 
 #### Webserver Architecture
 
-PROT-ON's web application was developed using Flask, Bootstrap, HTTP, CSS, JavaScript, Celery, RabbitMQ, SQLAlchemy, Nginx, Gunicorn, and Supervisor packages and services. The purpose for using these packages and services are provided below.
+PROT-ON's web application was developed using Flask, Bootstrap, HTTP, CSS, JavaScript, Celery, RabbitMQ, SQLAlchemy, Nginx, Gunicorn, and Supervisor packages and services. These packages and services handle the jobs provided below.
 
 1. **Frontend**: HTML, CSS, and JavaScript, Bootstrap for the user interface.
 2. **Backend**: Python scripts and [Flask](https://flask.palletsprojects.com/en/3.0.x/) for handling requests and running the mutation analysis.
@@ -45,6 +45,7 @@ PROT-ON's web application was developed using Flask, Bootstrap, HTTP, CSS, JavaS
 ### Usage
 
 #### System dependencies
+* Note that you must remove and re-install all system dependency packages if you re-download the PROT-ON Web package.
 
 * python3 OR conda (version 4.10 or higher)
 * Linux
@@ -76,7 +77,7 @@ git clone https://github.com/mehdikosaca/prot-on_web.git
 cd prot-on_web
 ```
 
-PROT-ON will deploy to your IP/domain address after completing these instructions. If you prefer to deploy it on a specific domain, please enter your domain as a string in the `hostname` variable within `app.py` (PROT-ON's default domain is proton.tools.ibg.edu.tr:8001). You can also change the e-mail address to which the results are sent. For this, Please press `command/ctrl + f`, type `Fill with your e-mail here`, and edit with your e-mail in `app.py` script. Also if needed, you must change `MAIL_PORT`. 
+PROT-ON will deploy to your IP/domain address after completing these instructions. If you prefer to deploy it on a specific domain, please enter your domain as a string in the `hostname` variable within `app.py` (PROT-ON's default domain is proton.tools.ibg.edu.tr:8001). You can also change the e-mail address to which the results are sent. For this, please search `Fill with your e-mail here` in `app.py` script using `command/ctrl + f` and edit your e-mail. Also if needed, you must change `MAIL_PORT`. 
 
 ### Quick Installation
 
@@ -84,33 +85,29 @@ You can run the script (`setup_prot-on.sh`) to quickly deploy the PROT-ON web se
 
 #### To Run the PROT-ON Webserver
 
-Initiate two terminal tabs on the PROT-ON working directory, and run the following commands to start background and scheduled tasks, respectively (You must run these commands out of the environment). Note that, if any change or bugs occur in the scripts, please rerun these and the supervisor command below.
-
+Open two separate terminal tabs on the PROT-ON working directory, and run the following commands to start background and scheduled tasks, respectively. These commands should be run out of the environment. 
 ```
-sudo celery -A app.celery worker --loglevel=info
-sudo celery -A app.celery beat --loglevel=info
+celery -A app.celery worker --loglevel=info &
 ```
-and
-
 ```
-sudo service supervisor restart
+celery -A app.celery beat --loglevel=info
 ```
 
 ### PROT-ON Output Files
 
-* **Interface amino acid list:** Interfacial amino acid list (within a defined cut-off), belonging to the input chain ID, calculated by interface_residues.py. The same script outputs the pairwise contacts, as a Pairwise distance list.
+* **Mutation models Folder:** Stores the mutant models modeled by EvoEF1 or FoldX. The commands that generate the mutant models are `BuildMutant` and `BuildModel`, respectively for EvoEF1 and FoldX.
+  
+* **Interface amino acid list:** Amino acids within a defined cut-off are listed (calculated by `interface_residues.py`) as interfacial amino acids with their corresponding input chain IDs. Also, the pairwise contacts are calculated by the `interface_residues.py` script and saved as a pairwise distance list.
 
-* **Mutation models:** Generated mutant models modeled by BuildMutant command of EvoEF1 or BuildModel command of FoldX.
+* **Individual EvoEF1/FoldX files:** Binding affinity predictions are stored in this folder. Binding affinities are calculated preferably by EvoEF1 or FoldX.  The commands that calculate the predicted binding affinities are `ComputeBinding` ad `AnalyseComplex`, respectively for EvoEF1 and FoldX (proton_scores).
 
-* **Individual EvoEF1/FoldX files:** EvoEF1/FoldX binding affinity predictions calculated by ComputeBinding of EvoEF1 or AnalyseComplex of FoldX (proton_scores).
+* **Boxplot of EvoEF1/FoldX scores:** All binding affinity predictions are analyzed with the box-whisker statistics.
 
-* **Boxplot of EvoEF1/FoldX scores:** All EvoEF1/FoldX binding affinity predictions are analyzed with the box-whisker statistics, where;
+* **Depleting mutations:** The positive outliers are listed as depleting mutations.
 
-* **Depleting mutations:** are defined by the positive outliers, and;
+* **Enriching mutations:** The negative outliers are listed as enriching mutations.
 
-* **Enriching mutations:** are defined by the negative outliers.
-
-* **Heatmap of PROT-ON scores:** All possible mutation energies are plotted as a heatmap for visual inspection.
+* **Heatmap of PROT-ON scores:** A heatmap to visualize all possible mutation energies, highlighting depleting and enriching mutations.
 
 * **Filtered mutations:** Stability-filtered (uses ComputeStability command of EvoEF1 or Stability command of FoldX, where DDG-stability<0) enriching and depleting mutations and optionally PSSM-filtered (Enriching mutations with PSSM-score >0 && Depleting mutations with PSSM-score <=0).
 
@@ -139,6 +136,11 @@ This section includes valuable information for future updates of PROT-ON codes. 
 * **To edit statistical methods:** You can directly manipulate the `detect_outliers.py` script if any edits are necessary for the statistical analysis methods.
 
 * **Other HTML pages:** `Layouts.html` file serves as a layout page and is inherited by many other HTML pages. The `pre_calculated_runs.html` file includes information about pre-calculated runs. The files`404.html, about.html, help.html, refresh.html` are static pages. These pages are returned for specific purposes: **404.html** for page not found errors, **about.html** for information about the algorithm, **help.html** for some usage instructions, and **refresh.html** for waiting for the results. There are also some HTML pages under the *includes* folder. The **footer.html** is used for the footer section of pages, the **messages.html** is used for flash messaging, and the **navbar.html** is used for accessing the navigation menu.
+
+After any changes are made or if any bugs occur in the scripts, please run the command below **before** running the server with celery worker and beat commands.
+```
+sudo service supervisor restart
+```
 
 You can refer to the accompanying flowchart that outlines these instructions below.
 
